@@ -21,7 +21,7 @@ artisan_coordinator = LlmAgent(
     tools=[
         AgentTool(agent=artisan_image_agent),
         AgentTool(agent=artisan_story_agent),
-        AgentTool(agent=artisan_image_agent),
+        AgentTool(agent=artisan_video_agent),
     ],
 )
 
