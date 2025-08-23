@@ -33,3 +33,4 @@ gcloud/
 
 # macOS-specific ignores
 .DS_Store
+.env
