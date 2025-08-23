@@ -6,10 +6,10 @@ from google.adk import Agent
 from google.adk.tools import ToolContext, load_artifacts
 from google.genai import Client, types
 
-import prompt  # ensure you have prompt.py with ARTISAN_IMAGE_PROMPT
+from . import prompt  # ensure you have prompt.py with ARTISAN_IMAGE_PROMPT
 
 MODEL = "gemini-2.5-pro"
-MODEL_IMAGE = "imagen-3.0-edit-001"  # editing-capable Imagen model
+MODEL_IMAGE = "imagen-3.0-capability-001"  # editing-capable Imagen model
 
 # Load environment variables
 load_dotenv()
