@@ -4,7 +4,7 @@ from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 
 from . import prompt
-from .sub_agents.artisan_image import artisan_image_agent
+# from .sub_agents.artisan_image import artisan_image_agent
 from .sub_agents.artisan_story import artisan_story_agent
 from .sub_agents.artisan_video import artisan_video_agent
 
@@ -19,7 +19,7 @@ artisan_coordinator = LlmAgent(
     ),
     instruction=prompt.ARTISAN_COORDINATOR_PROMPT,
     tools=[
-        AgentTool(agent=artisan_image_agent),
+        # AgentTool(agent=artisan_image_agent),
         AgentTool(agent=artisan_story_agent),
         AgentTool(agent=artisan_video_agent),
     ],
