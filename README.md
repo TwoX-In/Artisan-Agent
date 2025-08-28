@@ -1,28 +1,28 @@
-# 🎨 Artisan Agent
+# Artisan Agent
 
 An intelligent multi-agent system powered by Google's ADK (Ads Development Kit) that creates comprehensive digital marketing assets for artisan products. The system coordinates specialized sub-agents to generate compelling stories, enhance images, and create promotional videos from product descriptions and images.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 The Artisan Agent follows a **coordinator-worker pattern** with a main orchestrator that delegates tasks to specialized sub-agents:
 
 ```
 📋 Artisan Coordinator (Main Agent)
-├── 📖 Story Agent     - Content & narrative creation
-├── 🖼️  Image Agent    - Image enhancement & refinement  
-└── 🎬 Video Agent     - Video generation from images
+├──   Story Agent     - Content & narrative creation
+├──   Image Agent    - Image enhancement & refinement  
+└──   Video Agent     - Video generation from images
 ```
 
 ### Core Components
 
-- **🧠 Main Coordinator**: Orchestrates the workflow and manages sub-agent interactions
+- ** Main Coordinator**: Orchestrates the workflow and manages sub-agent interactions
 - **⚡ Sub-Agents**: Specialized agents for specific content creation tasks
 - **🔧 Google ADK Integration**: Leverages Google's agent development framework
 - **☁️ Google Cloud Services**: Uses Vertex AI, Imagen, Veo, and Cloud Storage
 
-## 🤖 Agent Breakdown
+## Agent Breakdown
 
-### 📋 Artisan Coordinator 
+### Artisan Coordinator 
 **Role**: Main orchestrator and workflow manager  
 **Model**: `gemini-2.5-pro`  
 **Responsibilities**:
@@ -36,7 +36,7 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 
 ---
 
-### 📖 Story Agent
+### Story Agent
 **Role**: Content creation specialist  
 **Model**: `gemini-2.5-pro`  
 **Tools**: Google Search API  
@@ -60,7 +60,7 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 
 ---
 
-### 🎬 Video Agent  
+### Video Agent  
 **Role**: Video generation specialist  
 **Model**: `gemini-2.5-pro` (orchestration) + `veo-3.0-generate-preview` (generation)  
 **Integration**: Google's Veo model via Vertex AI
@@ -80,7 +80,7 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 
 ---
 
-### 🖼️ Image Agent *(Currently Disabled)*
+### Image Agent *(Currently Disabled)*
 **Role**: Image enhancement specialist  
 **Model**: `gemini-2.5-pro` + `imagen-3.0-capability-001`  
 
@@ -90,10 +90,6 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 - Remove noise and improve sharpness
 - Preserve artisan craftsmanship details
 - Maintain authentic product appearance
-
-## 🎯 System Capabilities
-
-The Artisan Agent system provides end-to-end digital marketing asset creation for artisan products through intelligent coordination of specialized sub-agents.
 
 ## 🧪 Testing
 
@@ -113,25 +109,7 @@ python3 tests/test_specific_image.py
 python3 tests/test_video_generation.py
 ```
 
-## 📁 Project Structure
-
-```
-Artisan-Agent/
-├── artisan_agent/              # Main agent package
-│   ├── agent.py                # Coordinator agent
-│   ├── prompt.py               # Main orchestration prompts
-│   └── sub_agents/             # Specialized sub-agents
-│       ├── artisan_story/      # Content creation agent
-│       ├── artisan_image/      # Image enhancement agent
-│       └── artisan_video/      # Video generation agent
-├── tests/                      # Test scripts
-├── requirements.txt            # Python dependencies
-├── .env.template              # Environment template
-├── SETUP_VIDEO_GENERATION.md  # Detailed setup guide
-└── README.md                  # This file
-```
-
-## 🔧 Technical Details
+## Technical Details
 
 ### Models Used
 - **Orchestration**: `gemini-2.5-pro` for reasoning and coordination
@@ -139,19 +117,13 @@ Artisan-Agent/
 - **Image Enhancement**: `imagen-3.0-capability-001` for image editing
 - **Search**: Google Search API for research
 
-### Limitations
-- **Video Duration**: 8-10 seconds maximum (Veo model constraint)
-- **Aspect Ratio**: 16:9 only for video generation
-- **Image Agent**: Currently disabled in coordinator
-- **Cost**: ~$0.50-1.00 per video generation
-
 ### Error Handling
 - Comprehensive timeout protection (10 minutes for video generation)
 - Detailed error messages with troubleshooting guidance
 - Graceful fallbacks for API failures
 - Environment validation and setup verification
 
-## 🎨 Use Cases
+## Use Cases
 
 - **Artisan Marketplaces**: Generate rich product listings
 - **E-commerce Platforms**: Create comprehensive product pages  
