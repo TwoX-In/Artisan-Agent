@@ -13,6 +13,11 @@ MODEL = "gemini-2.5-pro"
 # Veo model: note 8s limit on preview/3.0 (and on 3.0-generate-001)
 MODEL_VIDEO = "veo-3.0-generate-preview"
 
+# Video generation configuration
+MAX_WAIT_TIME = 600          # Maximum wait time in seconds (10 minutes)
+POLL_INTERVAL = 15           # Polling interval in seconds
+ASPECT_RATIO = "16:9"        # Default video aspect ratio
+
 load_dotenv()
 
 # Set environment variables for Vertex AI
@@ -24,7 +29,7 @@ client = genai.Client(
     location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"),
 )
 
-async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_ratio: str = "16:9"):
+async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_ratio: str = ASPECT_RATIO):
     """
     Generates a video using a product image and a creative prompt.
 
@@ -64,19 +69,19 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_r
         )
 
         # Poll until video generation is done
-        max_wait_time = 600  # 10 minutes max wait time
+        max_wait_time = MAX_WAIT_TIME  # 10 minutes max wait time
         wait_time = 0
         
         while not operation.done and wait_time < max_wait_time:
-            time.sleep(15)
-            wait_time += 15
+            time.sleep(POLL_INTERVAL)
+            wait_time += POLL_INTERVAL
             operation = client.operations.get(operation)
             print(f"Video generation in progress... ({wait_time}s elapsed)")
 
         if wait_time >= max_wait_time:
             return {
                 "status": "timeout", 
-                "detail": "Video generation timed out after 10 minutes"
+                "detail": "Video generation timed out after MAX_WAIT_TIME minutes"
             }
 
         if operation.result and operation.result.generated_videos:
