@@ -1,110 +1,110 @@
 import os
-import base64
-import asyncio
+import time
+import uuid
 from dotenv import load_dotenv
 from google.adk import Agent
-from google.adk.tools import ToolContext, load_artifacts
-from google.genai import Client
+from google import genai
 from google.genai.types import GenerateVideosConfig, Image
-
 from . import prompt
 
+# LLM used for orchestration / reasoning in this sub-agent (not for Veo itself)
 MODEL = "gemini-2.5-pro"
+
+# Veo model: note 8s limit on preview/3.0 (and on 3.0-generate-001)
 MODEL_VIDEO = "veo-3.0-generate-preview"
 
 load_dotenv()
 
-client = Client(
+# Set environment variables for Vertex AI
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+
+client = genai.Client(
     vertexai=True,
     project=os.getenv("GOOGLE_CLOUD_PROJECT"),
-    location=os.getenv("GOOGLE_CLOUD_LOCATION"),
+    location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"),
 )
 
-
-async def generate_video_reel(
-    tool_context: ToolContext,
-    product_name: str,
-    product_description: str,
-    descriptive_history: str,
-    image_filename: str,
-):
-    """Generates an Instagram-ready video using a provided artisan product image."""
-
-    # 1. Ensure the image exists in artifacts
-    artifacts = await tool_context.list_artifacts()
-    if image_filename not in artifacts:
-        return {"status": "failed", "detail": f"Image {image_filename} not found in artifacts."}
-
-    image_part = await tool_context.load_artifact(image_filename)
-    if image_part.mime_type not in ["image/png", "image/jpeg"]:
-        return {"status": "failed", "detail": f"Unsupported image MIME type: {image_part.mime_type}"}
-
-    # 2. Encode image as Base64
-    image_b64 = base64.b64encode(image_part.data).decode("utf-8")
-
-    # 3. Build prompt (don’t .format() here, just embed variables into a new string)
-    video_prompt = f"""
-    Create an engaging 15-second artisan product reel.
-    Product Name: {product_name}
-    Description: {product_description}
-    Story: {descriptive_history}
-    Visual guidance from image: {image_filename}
+async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_ratio: str = "16:9"):
     """
+    Generates a video using a product image and a creative prompt.
+
+    Args:
+        gcs_image_uri (str): GCS URI of the input product image.
+        video_prompt (str): Short text instruction describing video style.
+        aspect_ratio (str): Video aspect ratio. For veo-3.0-generate-preview, only "16:9" is supported.
+
+    Returns:
+        dict: Status, detail message, and output GCS video URI.
+    """
+    # Derive base name from input image
+    base_name = os.path.splitext(os.path.basename(gcs_image_uri))[0]
+    unique_name = f"{base_name}_{uuid.uuid4().hex}.mp4"
+
+    # Build output GCS path
+    output_gcs_uri = (
+        f"gs://{os.getenv('GOOGLE_CLOUD_STORAGE_BUCKET')}/artisan_videos/{unique_name}"
+    )
+
+    # Infer mime type from extension (default to png)
+    ext = os.path.splitext(gcs_image_uri)[-1].lower()
+    mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
 
     try:
-        # 4. Kick off async video generation
         operation = client.models.generate_videos(
             model=MODEL_VIDEO,
             prompt=video_prompt,
             image=Image(
-                bytes_base64_encoded=image_b64,
-                mime_type=image_part.mime_type,
+                gcs_uri=gcs_image_uri,
+                mime_type=mime_type,
             ),
-            config=GenerateVideosConfig(
-                duration_seconds=8,
-                aspect_ratio="16:9",
-                resolution="720p",
-                sample_count=1,
-                generate_audio=True,
-            ),
+                    config=GenerateVideosConfig(
+            aspect_ratio=aspect_ratio,  # Use provided aspect ratio (default 16:9)
+            output_gcs_uri=output_gcs_uri,
+        ),
         )
 
-        # 5. Poll until complete
-        while not operation.done:
-            await asyncio.sleep(15)
+        # Poll until video generation is done
+        max_wait_time = 600  # 10 minutes max wait time
+        wait_time = 0
+        
+        while not operation.done and wait_time < max_wait_time:
+            time.sleep(15)
+            wait_time += 15
             operation = client.operations.get(operation)
+            print(f"Video generation in progress... ({wait_time}s elapsed)")
 
-        if not operation.response:
-            return {"status": "failed", "detail": "No video generated."}
-
-        # 6. Handle output (GCS or inline bytes)
-        result = operation.result.generated_videos[0].video
-
-        if hasattr(result, "uri") and result.uri:
+        if wait_time >= max_wait_time:
             return {
-                "status": "success",
-                "detail": "Video reel generated successfully.",
-                "video_uri": result.uri,
+                "status": "timeout", 
+                "detail": "Video generation timed out after 10 minutes"
             }
-        elif hasattr(result, "bytes_base64_encoded"):
+
+        if operation.result and operation.result.generated_videos:
+            video_uri = operation.result.generated_videos[0].video.uri
             return {
                 "status": "success",
-                "detail": "Video reel generated successfully (inline).",
-                "video_bytes": result.bytes_base64_encoded,
+                "detail": "Artisan video generated successfully",
+                "video_uri": video_uri,
             }
         else:
-            return {"status": "failed", "detail": "Video generated but no URI or data returned."}
+            return {
+                "status": "failed", 
+                "detail": f"Video generation failed: {operation.error if hasattr(operation, 'error') else 'Unknown error'}"
+            }
 
     except Exception as e:
-        return {"status": "failed", "detail": f"Video generation error: {str(e)}"}
+        return {
+            "status": "error",
+            "detail": f"Error during video generation: {str(e)}"
+        }
 
 
-# 7. Agent definition
+# Sub-agent definition:
 artisan_video_agent = Agent(
     model=MODEL,
     name="artisan_video_agent",
-    description="Generates Instagram-ready video reels using a product image, name, description, and story.",
-    instruction=prompt.ARTISAN_VIDEO_PROMPT,  # keep as reference prompt, not formatted
+    description="Generates short-form videos (8-10 seconds) from artisan product images using Google's Veo model in 16:9 aspect ratio.",
+    instruction=prompt.ARTISAN_VIDEO_PROMPT,
     output_key="artisan_video_output",
-    tools=[generate_video_reel, load_artifacts],
+    tools=[generate_artisan_video],
 )
