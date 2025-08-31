@@ -34,3 +34,4 @@ gcloud/
 # macOS-specific ignores
 .DS_Store
 .env
+service-account-key.json

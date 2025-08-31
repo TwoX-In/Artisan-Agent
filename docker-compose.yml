@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  artisan-agent:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: artisan-agent-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Google Cloud Configuration
+      - GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI:-True}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-us-central1}
+      - GOOGLE_CLOUD_STORAGE_BUCKET=${GOOGLE_CLOUD_STORAGE_BUCKET}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
+      
+      # Logging Configuration  
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-standard}
+      
+      # Application Configuration
+      - PYTHONPATH=/app
+    
+    volumes:
+      # Mount service account credentials
+      - ./service-account-key.json:/app/service-account-key.json:ro
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount environment file
+      - ./.env:/app/.env:ro
+    
+    env_file:
+      - .env
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - artisan-network
+
+networks:
+  artisan-network:
+    driver: bridge

@@ -91,6 +91,84 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 - Preserve artisan craftsmanship details
 - Maintain authentic product appearance
 
+## 🚀 Quick Start with Docker
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Google Cloud credentials (service account JSON file)
+- `.env` file with required environment variables
+
+### 1. Setup Environment
+
+Create a `.env` file in the project root:
+```bash
+# Google Cloud Configuration
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+GOOGLE_CLOUD_STORAGE_BUCKET=your-bucket-name
+
+# Optional: Path to service account credentials
+GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+
+# Logging (optional)
+LOG_LEVEL=INFO
+LOG_FORMAT=standard
+```
+
+### 2. Run with Docker Compose
+
+```bash
+# Build and start the service
+docker-compose up --build
+
+# Run in background
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
+```
+
+### 3. Test the API
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Generate content
+curl -X POST "http://localhost:8000/generate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_description": "Handcrafted wooden spice box",
+    "gcs_image_uri": "gs://your-bucket/image.png"
+  }'
+```
+
+### 4. API Documentation
+
+Once running, visit:
+- **API Docs**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+
+## 🛠️ Manual Installation
+
+If you prefer to run without Docker:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+export GOOGLE_CLOUD_PROJECT=your-project-id
+export GOOGLE_CLOUD_LOCATION=us-central1
+export GOOGLE_CLOUD_STORAGE_BUCKET=your-bucket-name
+
+# Run the API server
+python api_server.py
+```
+
 ## 🧪 Testing
 
 Run the test suite to verify your setup:
