@@ -304,10 +304,10 @@ async def root():
 if __name__ == "__main__":
     import uvicorn 
     
-    print("🚀 Starting Artisan Agent API server...")
-    print("📚 API documentation: http://localhost:8000/docs")
-    print("❤️ Health check: http://localhost:8000/health")
-    print("🎨 Main endpoint: http://localhost:8000/generate")
+    print(" Starting Artisan Agent API server...")
+    print("API documentation: http://localhost:8000/docs")
+    print("Health check: http://localhost:8000/health")
+    print("Main endpoint: http://localhost:8000/generate")
     
     uvicorn.run(
         "api_server:app",
