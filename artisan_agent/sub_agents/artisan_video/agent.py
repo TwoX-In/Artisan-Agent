@@ -6,6 +6,10 @@ from google.adk import Agent
 from google import genai
 from google.genai.types import GenerateVideosConfig, Image
 from . import prompt
+from ...logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger(__name__)
 
 # LLM used for orchestration / reasoning in this sub-agent (not for Veo itself)
 MODEL = "gemini-2.5-pro"
@@ -41,6 +45,10 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_r
     Returns:
         dict: Status, detail message, and output GCS video URI.
     """
+    logger.info(f"Starting video generation for image: {gcs_image_uri}")
+    logger.info(f"Video prompt: {video_prompt[:100]}{'...' if len(video_prompt) > 100 else ''}")
+    logger.info(f"Aspect ratio: {aspect_ratio}")
+    
     # Derive base name from input image
     base_name = os.path.splitext(os.path.basename(gcs_image_uri))[0]
     unique_name = f"{base_name}_{uuid.uuid4().hex}.mp4"
@@ -55,6 +63,7 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_r
     mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
 
     try:
+        logger.info(f"Initiating video generation with Veo model: {MODEL_VIDEO}")
         operation = client.models.generate_videos(
             model=MODEL_VIDEO,
             prompt=video_prompt,
@@ -67,18 +76,22 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_r
             output_gcs_uri=output_gcs_uri,
         ),
         )
+        
+        logger.info(f"Video generation operation started: {operation.name}")
 
         # Poll until video generation is done
         max_wait_time = MAX_WAIT_TIME  # 10 minutes max wait time
         wait_time = 0
+        logger.info(f"Starting polling for operation completion (max wait: {max_wait_time}s, interval: {POLL_INTERVAL}s)")
         
         while not operation.done and wait_time < max_wait_time:
             time.sleep(POLL_INTERVAL)
             wait_time += POLL_INTERVAL
             operation = client.operations.get(operation)
-            print(f"Video generation in progress... ({wait_time}s elapsed)")
+            logger.info(f"Video generation in progress... ({wait_time}s elapsed)")
 
         if wait_time >= max_wait_time:
+            logger.error(f"Video generation timed out after {max_wait_time} seconds")
             return {
                 "status": "timeout", 
                 "detail": "Video generation timed out after MAX_WAIT_TIME minutes"
@@ -86,18 +99,22 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_r
 
         if operation.result and operation.result.generated_videos:
             video_uri = operation.result.generated_videos[0].video.uri
+            logger.info(f"Video generation completed successfully! Video URI: {video_uri}")
             return {
                 "status": "success",
                 "detail": "Artisan video generated successfully",
                 "video_uri": video_uri,
             }
         else:
+            error_detail = operation.error if hasattr(operation, 'error') else 'Unknown error'
+            logger.error(f"Video generation failed: {error_detail}")
             return {
                 "status": "failed", 
-                "detail": f"Video generation failed: {operation.error if hasattr(operation, 'error') else 'Unknown error'}"
+                "detail": f"Video generation failed: {error_detail}"
             }
 
     except Exception as e:
+        logger.error(f"Exception during video generation: {str(e)}", exc_info=True)
         return {
             "status": "error",
             "detail": f"Error during video generation: {str(e)}"

@@ -4,11 +4,17 @@ from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 
 from . import prompt
+from .logger import get_logger
 # from .sub_agents.artisan_image import artisan_image_agent
 from .sub_agents.artisan_story import artisan_story_agent
 from .sub_agents.artisan_video import artisan_video_agent
 
+# Initialize logger for this module
+logger = get_logger(__name__)
+
 MODEL = "gemini-2.5-pro" 
+
+logger.info(f"Initializing Artisan Coordinator with model: {MODEL}")
 
 artisan_coordinator = LlmAgent(
     name="artisan_coordinator",
@@ -24,5 +30,7 @@ artisan_coordinator = LlmAgent(
         AgentTool(agent=artisan_video_agent),
     ],
 )
+
+logger.info("Artisan Coordinator initialized successfully with tools: story_agent, video_agent")
 
 root_agent = artisan_coordinator
