@@ -5,10 +5,9 @@ from google.adk.tools.agent_tool import AgentTool
 
 from . import prompt
 from .logger import get_logger
-# from .sub_agents.artisan_image import artisan_image_agent
 # from .sub_agents.artisan_emails import artisan_email_agent
 from .sub_agents.artisan_story import artisan_story_agent
-# from .sub_agents.artisan_video import artisan_video_agent
+from .sub_agents.artisan_video import artisan_video_agent
 from .sub_agents.artisan_image.agent import artisan_image_agent
 
 
@@ -30,7 +29,7 @@ artisan_coordinator = LlmAgent(
     tools=[
         AgentTool(agent=artisan_story_agent),
         AgentTool(agent=artisan_image_agent),
-        # AgentTool(agent=artisan_video_agent),
+        AgentTool(agent=artisan_video_agent),
     ],
 )
 

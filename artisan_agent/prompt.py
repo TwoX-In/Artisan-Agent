@@ -14,6 +14,12 @@ Automated Workflow - Execute these steps automatically:
    - Product image with different angles and lighting in household settings
    - Pass the GCS URI of the original product image that was provided as input
    - The agent will automatically generate unique variations and return JSON with GCS URIs
+   
+3. Call the artisan_video_agent to generate a promotional video by passing:
+   - GCS URI of the original product image.
+   - A voiceover line derived from the historical context/cultural significance
+   - Background music should be a pleasant Indian instrumental (sitar, tabla, flute, or similar)
+   - Video style instructions for artisan product showcase
 
 3. Use the provided product description and stored product image (GCS URI) as primary inputs.
 4. Ensure all outputs are consistent, professional, and tailored to artisan branding.
