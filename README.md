@@ -32,7 +32,38 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 - Returns structured JSON responses with all generated assets
 
 **Input**: Product description + stored GCS image URI  
-**Output**: Structured JSON with story, videos, and enhanced content
+**Output**: Complete marketing package in structured JSON format
+
+**Output Format**:
+```json
+{
+  "story": "Compelling product story highlighting craftsmanship and heritage",
+  "history": {
+    "location_specific_info": "Geographic and cultural context",
+    "descriptive_history": "Rich historical narrative"
+  },
+  "faqs": [
+    {
+      "question": "Common customer question",
+      "answer": "Detailed, helpful answer"
+    }
+  ],
+  "images": [
+    {
+      "image_uri": "gs://bucket/path/to/generated_image1.png"
+    },
+    {
+      "image_uri": "gs://bucket/path/to/generated_image2.png"
+    },
+    {
+      "image_uri": "gs://bucket/path/to/generated_image3.png"
+    }
+  ],
+  "video": {
+    "gcs_uri": "gs://bucket/path/to/generated_video.mp4"
+  }
+}
+```
 
 ---
 
@@ -80,16 +111,23 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 
 ---
 
-### Image Agent *(Currently Disabled)*
-**Role**: Image enhancement specialist  
-**Model**: `gemini-2.5-pro` + `imagen-3.0-capability-001`  
+### Image Agent
+**Role**: Image generation specialist  
+**Model**: `gemini-2.5-pro` (orchestration) + `gemini-2.5-flash-image-preview` (generation)  
+**Integration**: Google's Gemini 2.5 Flash Image via Vertex AI
 
-**Planned Capabilities**:
-- Enhance image quality and clarity
-- Adjust lighting and color balance  
-- Remove noise and improve sharpness
-- Preserve artisan craftsmanship details
-- Maintain authentic product appearance
+**Capabilities**:
+- Generates 3 unique product image variations from input GCS image
+- Creates different angles, settings, and lighting scenarios
+- Supports lifestyle, detail, and heritage-focused compositions
+- Handles GCS image input and output storage
+- Uses multimodal input (image + text prompt)
+
+**Technical Specs**:
+- **Input**: GCS image URI + creative text prompts
+- **Output**: 3 generated images stored in GCS bucket
+- **Model**: `gemini-2.5-flash-image-preview` (global location)
+- **Format**: PNG/JPEG with automatic MIME type detection
 
 ## 🚀 Quick Start with Docker
 
@@ -192,7 +230,7 @@ python3 tests/test_video_generation.py
 ### Models Used
 - **Orchestration**: `gemini-2.5-pro` for reasoning and coordination
 - **Video Generation**: `veo-3.0-generate-preview` for video creation
-- **Image Enhancement**: `imagen-3.0-capability-001` for image editing
+- **Image Generation**: `gemini-2.5-flash-image-preview` for image variations
 - **Search**: Google Search API for research
 
 ### Error Handling
