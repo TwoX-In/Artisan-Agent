@@ -27,6 +27,7 @@ services:
     volumes:
       # Mount service account credentials
       - ./service-account-key.json:/app/service-account-key.json:ro
+      - ./service-account-key-2.json:/app/service-account-key-2.json:ro
       # Mount logs directory for persistence
       - ./logs:/app/logs
       # Mount environment file

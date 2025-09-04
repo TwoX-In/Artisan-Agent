@@ -10,14 +10,14 @@ Automated Workflow - Execute these steps automatically:
    - Historical context and cultural significance
    - Frequently Asked Questions (FAQs)
 
-2. Call the artisan_video_agent to generate a promotional video by passing:
-   - GCS URI of the product image
-   - A voiceover line derived from the historical context/cultural significance
-   - Video style instructions for artisan product showcase
+2. Call the artisan_image_agent to generate:
+   - Product image with different angles and lighting in household settings
+   - Pass the GCS URI of the original product image that was provided as input
+   - The agent will automatically generate unique variations and return JSON with GCS URIs
 
 3. Use the provided product description and stored product image (GCS URI) as primary inputs.
 4. Ensure all outputs are consistent, professional, and tailored to artisan branding.
-5. Return the complete marketing package in a structured JSON format with clearly separated sections for story, history, faqs, and generated video url.
+5. Return the complete marketing package in a structured JSON format with clearly separated sections for story, history, faqs, images gcs uri.
 
 No user interaction required - automatically generate all marketing assets from the initial product description and image.
 """
