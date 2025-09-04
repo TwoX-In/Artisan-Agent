@@ -23,7 +23,37 @@ Automated Workflow - Execute these steps automatically:
 
 3. Use the provided product description and stored product image (GCS URI) as primary inputs.
 4. Ensure all outputs are consistent, professional, and tailored to artisan branding.
-5. Return the complete marketing package in a structured JSON format with clearly separated sections for story, history, faqs, images gcs uri.
+5. Return the complete marketing package in a structured JSON format with clearly separated sections for story, history, faqs, images with multiple gcs uris, and video gcs uri.
+
+**REQUIRED JSON OUTPUT FORMAT:**
+```json
+{
+  "story": 
+  "history": {
+    "location_specific_info": ,
+    "descriptive_history": 
+  },
+  "faqs": [
+    {
+      "question": ,
+      "answer":
+    }
+  ],
+  "images": [
+    {
+      "image_uri":
+    },
+    {
+      "image_uri":
+    {
+      "image_uri":
+    }
+  ],
+  "video": {
+    "gcs_uri":
+  }
+}
+```
 
 No user interaction required - automatically generate all marketing assets from the initial product description and image.
 """

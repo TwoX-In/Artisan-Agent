@@ -10,6 +10,7 @@ from ...logger import get_logger
 from . import prompt
 from google.cloud import storage
 import uuid
+import time
 logger = get_logger(__name__)
 
 MODEL = "gemini-2.5-pro"
@@ -83,6 +84,7 @@ async def generate_artisan_variations(
 
     try:
         logger.info(f"Initiating image generation with Veo model: {NANO_BANANA_MODEL}")
+        start_time = time.time()
         response = client.models.generate_content(
             model=NANO_BANANA_MODEL,
             contents=(
@@ -91,6 +93,8 @@ async def generate_artisan_variations(
             ),
             config=GenerateContentConfig(response_modalities=[Modality.TEXT, Modality.IMAGE]),
         )
+        generation_time = time.time() - start_time
+        logger.info(f"Image generation completed in {generation_time:.2f} seconds")
 
         first_image_bytes = None
         for part in response.candidates[0].content.parts:
