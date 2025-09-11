@@ -303,16 +303,18 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn 
-    
+    import os
+
+    port = int(os.environ.get("PORT", 8080))  # 👈 fallback to 8080
+
     print(" Starting Artisan Agent API server...")
-    print("API documentation: http://localhost:8000/docs")
-    print("Health check: http://localhost:8000/health")
-    print("Main endpoint: http://localhost:8000/generate")
+    print(f"API documentation: http://localhost:{port}/docs")
+    print(f"Health check: http://localhost:{port}/health")
+    print(f"Main endpoint: http://localhost:{port}/generate")
     
     uvicorn.run(
         "api_server:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
         log_level="info"
     )
