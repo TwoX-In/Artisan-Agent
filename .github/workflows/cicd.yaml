@@ -27,7 +27,7 @@ jobs:
         run: gcloud auth configure-docker asia-south1-docker.pkg.dev
 
       # 4️⃣ Build and push Docker image to Artifact Registry
-      - name: Build and Push Image
+      - name: Build and Push Docker image
         run: |
           IMAGE="asia-south1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/fankaar/artisan-agent-api:latest"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
