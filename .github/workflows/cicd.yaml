@@ -3,7 +3,7 @@ name: Build and Deploy to Cloud Run (asia-south1)
 on:
   push:
     branches:
-      - main   # only deploy on main branch
+      - main
 
 jobs:
   build-and-deploy:
