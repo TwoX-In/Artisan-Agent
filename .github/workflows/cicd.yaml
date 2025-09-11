@@ -1,4 +1,4 @@
-name: Build and Deploy to Cloud Run (asia-south1)
+name: Build and Deploy to Cloud Run
 
 on:
   push:
