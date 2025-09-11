@@ -142,7 +142,7 @@ Create a `.env` file in the project root:
 ```bash
 # Google Cloud Configuration
 GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
+GOOGLE_CLOUD_LOCATION=global
 GOOGLE_CLOUD_STORAGE_BUCKET=your-bucket-name
 
 # Optional: Path to service account credentials

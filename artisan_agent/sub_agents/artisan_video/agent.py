@@ -30,7 +30,7 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 client = genai.Client(
     vertexai=True,
     project=os.getenv("GOOGLE_CLOUD_PROJECT"),
-    location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"),
+    location=os.getenv("GOOGLE_CLOUD_LOCATION"),
 )
 
 async def generate_artisan_video(gcs_image_uri: str, video_prompt: str, aspect_ratio: str = ASPECT_RATIO):

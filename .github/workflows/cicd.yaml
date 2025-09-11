@@ -1,0 +1,48 @@
+name: Build and Deploy to Cloud Run (asia-south1)
+
+on:
+  push:
+    branches:
+      - main   # only deploy on main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Authenticate with GCP
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT}}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      # 3️⃣ Configure Docker to use Artifact Registry
+      - name: Configure Docker for GAR
+        run: gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+      # 4️⃣ Build and push Docker image to Artifact Registry
+      - name: Build and Push Image
+        run: |
+          IMAGE="asia-south1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/fankaar/artisan-agent-api:latest"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      # 5️⃣ Deploy to Cloud Run in asia-south1
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy artisan-agent-api \
+            --image $IMAGE \
+            --region asia-south1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars GOOGLE_GENAI_USE_VERTEXAI=${{ secrets.GOOGLE_GENAI_USE_VERTEXAI }},\
+GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},\
+GOOGLE_CLOUD_LOCATION=${{ secrets.GOOGLE_CLOUD_LOCATION }},\
+GOOGLE_CLOUD_STORAGE_BUCKET=${{ secrets.GOOGLE_CLOUD_STORAGE_BUCKET }}
