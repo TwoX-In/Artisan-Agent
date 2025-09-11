@@ -23,7 +23,7 @@ RUN mkdir -p logs
 RUN chmod +x api_server.py
 
 # Expose the port
-EXPOSE 8080
+EXPOSE 8080 8000
 
 
 # Health check (using wget instead of curl to avoid installing curl)
