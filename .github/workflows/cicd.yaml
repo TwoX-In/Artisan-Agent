@@ -46,4 +46,4 @@ jobs:
             --region asia-south1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=${{ secrets.GOOGLE_GENAI_USE_VERTEXAI }},GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},GOOGLE_CLOUD_LOCATION=${{ secrets.GOOGLE_CLOUD_LOCATION }},GOOGLE_CLOUD_STORAGE_BUCKET=${{ secrets.GOOGLE_CLOUD_STORAGE_BUCKET }}, PORT=${{ secrets.PORT }}"
+            --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=${{ secrets.GOOGLE_GENAI_USE_VERTEXAI }},GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},GOOGLE_CLOUD_LOCATION=${{ secrets.GOOGLE_CLOUD_LOCATION }},GOOGLE_CLOUD_STORAGE_BUCKET=${{ secrets.GOOGLE_CLOUD_STORAGE_BUCKET }}}"
