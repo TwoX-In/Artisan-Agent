@@ -6,7 +6,8 @@ WORKDIR /app
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
 
 # Install system dependencies including FFmpeg and FFprobe
 RUN apt-get update && apt-get install -y \
@@ -30,7 +31,7 @@ RUN mkdir -p logs /tmp/video_processing && \
 # Set proper permissions
 RUN chmod +x api_server.py
 
-# Expose the port
-EXPOSE 8080 8000
+# Expose the port (Cloud Run uses 8080)
+EXPOSE 8080
 
 CMD ["python3", "api_server.py"]
