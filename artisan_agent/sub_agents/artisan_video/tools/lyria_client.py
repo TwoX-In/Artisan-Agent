@@ -151,10 +151,18 @@ class LyriaClient:
                 
                 logger.info(f"Music uploaded to GCS: {gcs_uri}")
                 
+                # Clean up local temp file after successful upload
+                try:
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+                        logger.debug(f"Cleaned up temp music file: {local_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp music file {local_path}: {e}")
+                
                 return {
                     "status": "success",
                     "detail": "Background music generated successfully",
-                    "music_path": local_path,
+                    "music_path": gcs_uri,  # Return GCS URI instead of local path
                     "audio_gcs_uri": gcs_uri
                 }
             else:

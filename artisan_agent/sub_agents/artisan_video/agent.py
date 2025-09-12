@@ -132,10 +132,18 @@ def generate_voiceover(text: str, product_name: str):
         output_gcs_uri = f"gs://{os.getenv('GOOGLE_CLOUD_STORAGE_BUCKET')}/artisan_videos/{unique_name}"
         upload_to_gcs(narration_path, output_gcs_uri, "audio/wav")
 
+        # Clean up local temp file after successful upload
+        try:
+            if os.path.exists(narration_path):
+                os.remove(narration_path)
+                logger.debug(f"Cleaned up temp narration file: {narration_path}")
+        except Exception as e:
+            logger.warning(f"Failed to clean up temp narration file {narration_path}: {e}")
+
         return {
             "status": "success",
             "detail": "Narration generated with Despina voice",
-            "narration_path": narration_path,
+            "narration_path": output_gcs_uri,  # Return GCS URI instead of local path
             "audio_gcs_uri": output_gcs_uri,
         }
     except Exception as e:
@@ -151,7 +159,7 @@ def generate_background_music(prompt: str, product_name: str):
         product_name: Used for generating unique filename
         
     Returns:
-        dict with status, music_path (local), and audio_gcs_uri (GCS)
+        dict with status, music_path (GCS URI), and audio_gcs_uri (GCS)
     """
     from .tools.lyria_client import LyriaClient
     
@@ -259,16 +267,16 @@ async def generate_artisan_video(gcs_image_uri: str, video_prompt: str):
         }
 
 def process_videos_with_ffmpeg_mcp(video_uris: list, 
-                                  narration_path: Optional[str] = None,
-                                  music_path: Optional[str] = None,
+                                  narration_gcs_uri: Optional[str] = None,
+                                  music_gcs_uri: Optional[str] = None,
                                   volume_prompt: str = ""):
     """
     Process videos using FFmpeg MCP class - handles transitions and audio stitching.
     
     Args:
         video_uris: List of local file paths or GCS URIs to videos
-        narration_path: Optional local file path or GCS URI to narration audio
-        music_path: Optional local file path or GCS URI to background music
+        narration_gcs_uri: Optional GCS URI to narration audio
+        music_gcs_uri: Optional GCS URI to background music
         volume_prompt: Natural language prompt with volume instructions
         
     Returns:
@@ -278,17 +286,19 @@ def process_videos_with_ffmpeg_mcp(video_uris: list,
     
     logger.info("=== Processing videos with FFmpeg MCP ===")
     logger.info(f"Videos: {len(video_uris)} files")
-    logger.info(f"Narration: {'Yes' if narration_path else 'No'}")
-    logger.info(f"Music: {'Yes' if music_path else 'No'}")
+    logger.info(f"Narration: {'Yes' if narration_gcs_uri else 'No'}")
+    logger.info(f"Music: {'Yes' if music_gcs_uri else 'No'}")
     logger.info(f"Volume prompt: {volume_prompt}")
     
     if not video_uris:
         return {"status": "error", "detail": "No video URIs provided"}
     
+    # Initialize temp files list for cleanup
+    temp_files = []
+    
     try:
         # Download GCS files to local paths if needed
         local_videos = []
-        temp_files = []
         
         for video_uri in video_uris:
             if video_uri.startswith("gs://"):
@@ -305,24 +315,24 @@ def process_videos_with_ffmpeg_mcp(video_uris: list,
         
         # Download narration if needed
         local_narr = None
-        if narration_path:
-            if narration_path.startswith("gs://"):
-                local_narr = download_to_temp(narration_path)
+        if narration_gcs_uri:
+            if narration_gcs_uri.startswith("gs://"):
+                local_narr = download_to_temp(narration_gcs_uri)
                 temp_files.append(local_narr)
             else:
-                local_narr = narration_path
+                local_narr = narration_gcs_uri
             
             if not os.path.exists(local_narr):
                 return {"status": "error", "detail": f"Narration file not found: {local_narr}"}
         
         # Download music if needed
         local_music = None
-        if music_path:
-            if music_path.startswith("gs://"):
-                local_music = download_to_temp(music_path)
+        if music_gcs_uri:
+            if music_gcs_uri.startswith("gs://"):
+                local_music = download_to_temp(music_gcs_uri)
                 temp_files.append(local_music)
             else:
-                local_music = music_path
+                local_music = music_gcs_uri
             
             if not os.path.exists(local_music):
                 return {"status": "error", "detail": f"Music file not found: {local_music}"}
@@ -368,15 +378,6 @@ def process_videos_with_ffmpeg_mcp(video_uris: list,
         final_gcs_uri = upload_to_gcs(final_video_path, output_gcs_uri, "video/mp4")
         logger.info(f"Final video uploaded to GCS: {final_gcs_uri}")
         
-        # Step 4: Clean up temporary files
-        for temp_file in temp_files:
-            try:
-                if os.path.exists(temp_file):
-                    os.remove(temp_file)
-                    logger.debug(f"Cleaned up temp file: {temp_file}")
-            except Exception as e:
-                logger.warning(f"Failed to clean up temp file {temp_file}: {e}")
-        
         return {
             "status": "success",
             "detail": f"Video processing completed successfully at {final_gcs_uri}",
@@ -387,6 +388,16 @@ def process_videos_with_ffmpeg_mcp(video_uris: list,
     except Exception as e:
         logger.error(f"Failed to process videos with FFmpeg MCP: {e}", exc_info=True)
         return {"status": "error", "detail": f"Video processing failed: {e}"}
+    
+    finally:
+        # Always clean up temporary files, regardless of success or failure
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    logger.debug(f"Cleaned up temp file: {temp_file}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up temp file {temp_file}: {e}")
 
 
 # Sub-agent definition:

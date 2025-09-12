@@ -35,22 +35,22 @@ You will receive:
 
 4) **Generate narration**:
    - Write a short narration (~15 seconds) that complements both videos and describes the product overall.
-   - Call `generate_voiceover(text, "product_narration")` to convert to speech → captures `narration_path`.
+   - Call `generate_voiceover(text, "product_narration")` to convert to speech → captures `narration_gcs_uri`.
 
 5) **Generate 2 videos**:
    - Call `generate_artisan_video(first_image_uri, first_video_prompt)` → captures `first_video_uri`
    - Call `generate_artisan_video(second_image_uri, second_video_prompt)` → captures `second_video_uri`
 
 6) **Generate background music** (optional):
-   - Call `generate_background_music(prompt, product_name)` to create 15 second background music → captures `music_path`
+   - Call `generate_background_music(prompt, product_name)` to create 15 second background music → captures `music_gcs_uri`
    - Use prompts like "soothing classical music with traditional instruments"
    - the music fades out at the end
 
 7) **REQUIRED: Process videos with FFmpeg MCP**:
-   - **MUST call** `process_videos_with_ffmpeg_mcp(video_uris, narration_path, music_path, volume_prompt)` using:
+   - **MUST call** `process_videos_with_ffmpeg_mcp(video_uris, narration_gcs_uri, music_gcs_uri, volume_prompt)` using:
      - `video_uris`: List containing both video URIs from step 5  
-     - `narration_path`: The local path returned from `generate_voiceover`
-     - `music_path`: The local path returned from `generate_background_music` (optional)
+     - `narration_gcs_uri`: The GCS URI returned from `generate_voiceover`
+     - `music_gcs_uri`: The GCS URI returned from `generate_background_music` (optional)
      - `volume_prompt`: Natural language volume instructions like "clear voice, soft music, fade out music at end"
    - This will concatenate videos with transitions, add narration and background music with proper volume mixing
    - **RETURN the final video URI** from this function - this is your final output
