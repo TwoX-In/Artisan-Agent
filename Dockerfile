@@ -8,6 +8,13 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Install system dependencies including FFmpeg and FFprobe
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -16,8 +23,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the application code
 COPY . .
 
-# Create logs directory
-RUN mkdir -p logs
+# Create necessary directories
+RUN mkdir -p logs /tmp/video_processing && \
+    chmod 755 /tmp/video_processing
 
 # Set proper permissions
 RUN chmod +x api_server.py
@@ -25,10 +33,6 @@ RUN chmod +x api_server.py
 # Expose the port
 EXPOSE 8080 8000
 
-
-# Health check (using wget instead of curl to avoid installing curl)
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 # Run the application
 CMD ["python3", "api_server.py"]
