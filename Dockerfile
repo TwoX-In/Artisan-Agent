@@ -33,6 +33,4 @@ RUN chmod +x api_server.py
 # Expose the port
 EXPOSE 8080 8000
 
-
-# Run the application
 CMD ["python3", "api_server.py"]
