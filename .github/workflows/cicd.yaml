@@ -29,12 +29,12 @@ jobs:
 
       # 4️⃣ Configure Docker to use Artifact Registry
       - name: Configure Docker for GAR
-        run: gcloud auth configure-docker asia-south1-docker.pkg.dev
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       # 5️⃣ Build and push Docker image
       - name: Build and Push Docker image
         run: |
-          IMAGE="asia-south1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/containers/artisan-agent-api:latest"
+          IMAGE="us-central1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/containers/artisan-agent-api:latest"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
           docker build -t $IMAGE .
           docker push $IMAGE
@@ -44,7 +44,7 @@ jobs:
         run: |
           gcloud run deploy artisan-agent-api \
             --image $IMAGE \
-            --region asia-south1 \
+            --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
             --memory 2Gi \
