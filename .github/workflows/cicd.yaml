@@ -34,7 +34,7 @@ jobs:
       # 5️⃣ Build and push Docker image
       - name: Build and Push Docker image
         run: |
-          IMAGE="asia-south1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/fankaar/artisan-agent-api:latest"
+          IMAGE="asia-south1-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/containers/artisan-agent-api:latest"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
           docker build -t $IMAGE .
           docker push $IMAGE

@@ -139,4 +139,4 @@ artisan_image_agent = Agent(
     tools=[generate_artisan_variations, load_artifacts],
 )
 
-logger.info("✅ Independent Nano Banana Image agent initialized successfully")
+logger.info("Banana Image agent initialized successfully")
