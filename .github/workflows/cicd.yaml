@@ -46,6 +46,7 @@ jobs:
             --image $IMAGE \
             --region us-central1 \
             --platform managed \
+            --project "${{ secrets.GOOGLE_CLOUD_PROJECT }}" \
             --allow-unauthenticated \
             --memory 2Gi \
             --cpu 2 \
