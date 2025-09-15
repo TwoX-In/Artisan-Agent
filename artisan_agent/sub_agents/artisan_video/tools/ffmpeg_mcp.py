@@ -15,6 +15,54 @@ from ....logger import get_logger
 
 logger = get_logger(__name__)
 
+# ========================
+# Module configuration
+# ========================
+# Duration fallbacks (seconds)
+DEFAULT_AUDIO_DURATION_FALLBACK_S = 30.0
+DEFAULT_VIDEO_DURATION_FALLBACK_S = 15.0
+
+# Transition defaults
+DEFAULT_TRANSITION_TYPE = "fade"
+DEFAULT_TRANSITION_DURATION_S = 2
+DEFAULT_TRANSITION_OFFSET_S = 5
+
+# Fade configuration
+FADE_DURATION_LONG_MAX_S = 8.0
+FADE_DURATION_QUICK_MAX_S = 2.0
+FADE_DURATION_DEFAULT_MAX_S = 5.0
+
+FADE_DURATION_LONG_RATIO = 0.4   # up to 40% of effective duration
+FADE_DURATION_QUICK_RATIO = 0.2  # up to 20% of effective duration
+FADE_DURATION_DEFAULT_RATIO = 0.3  # up to 30% of effective duration
+
+# Audio mix inputs
+AMIX_INPUTS_VIDEO_MUSIC_VOICE = 3
+AMIX_INPUTS_VIDEO_VOICE = 2
+AMIX_INPUTS_VIDEO_MUSIC = 2
+
+# Default volume levels
+DEFAULT_VOLUME_VIDEO = 0.3
+DEFAULT_VOLUME_MUSIC = 0.6
+DEFAULT_VOLUME_VOICE = 1.0
+
+# Parsed music volumes
+LOUD_MUSIC_VOLUME = 0.6
+SOFT_MUSIC_VOLUME = 0.2
+MEDIUM_MUSIC_VOLUME = 0.4
+NO_MUSIC_VOLUME = 0.0
+
+# Parsed voice volumes
+LOUD_VOICE_VOLUME = 1.2
+SOFT_VOICE_VOLUME = 0.7
+MEDIUM_VOICE_VOLUME = 1.0
+NO_VOICE_VOLUME = 0.0
+
+# Parsed video volumes
+LOUD_VIDEO_VOLUME = 0.8
+MUTED_VIDEO_VOLUME = 0.0
+MEDIUM_VIDEO_VOLUME = 0.5
+
 
 class FFmpegMCP:
     """
@@ -52,7 +100,7 @@ class FFmpegMCP:
         except (subprocess.CalledProcessError, KeyError, ValueError) as e:
             logger.error(f"Failed to get audio duration for {audio_path}: {e}")
             # Return a default duration if we can't determine it
-            return 30.0
+            return DEFAULT_AUDIO_DURATION_FALLBACK_S
 
     def get_video_duration(self, video_path: str) -> float:
         """
@@ -77,7 +125,7 @@ class FFmpegMCP:
         except (subprocess.CalledProcessError, KeyError, ValueError) as e:
             logger.error(f"Failed to get video duration for {video_path}: {e}")
             # Return a default duration if we can't determine it
-            return 15.0
+            return DEFAULT_VIDEO_DURATION_FALLBACK_S
     
     def run_ffmpeg_command(self, cmd: List[str], error_msg: str) -> None:
         """
@@ -102,9 +150,9 @@ class FFmpegMCP:
             raise RuntimeError(f"{error_msg}: {error_detail}")
     
     def concatenate_videos_with_transition(self, video_paths: List[str], 
-                                         transition_type: str = "fade",
-                                         transition_duration: int = 2,
-                                         transition_offset: int = 5) -> str:
+                                         transition_type: str = DEFAULT_TRANSITION_TYPE,
+                                         transition_duration: int = DEFAULT_TRANSITION_DURATION_S,
+                                         transition_offset: int = DEFAULT_TRANSITION_OFFSET_S) -> str:
         """
         Concatenate multiple videos with smooth transitions between them.
         
@@ -218,11 +266,11 @@ class FFmpegMCP:
             
             # Determine fade duration based on prompt and available time
             if 'dramatic fade' in prompt.lower() or 'long fade' in prompt.lower() or 'slow fade' in prompt.lower():
-                fade_duration = min(8.0, effective_duration * 0.4)  # Max 40% of duration
+                fade_duration = min(FADE_DURATION_LONG_MAX_S, effective_duration * FADE_DURATION_LONG_RATIO)
             elif 'quick fade' in prompt.lower() or 'fast fade' in prompt.lower():
-                fade_duration = min(2.0, effective_duration * 0.2)  # Max 20% of duration
+                fade_duration = min(FADE_DURATION_QUICK_MAX_S, effective_duration * FADE_DURATION_QUICK_RATIO)
             else:
-                fade_duration = min(5.0, effective_duration * 0.3)  # Max 30% of duration
+                fade_duration = min(FADE_DURATION_DEFAULT_MAX_S, effective_duration * FADE_DURATION_DEFAULT_RATIO)
             
             fade_start = max(0, effective_duration - fade_duration)  # Ensure non-negative
             
@@ -263,7 +311,7 @@ class FFmpegMCP:
             logger.info(f"Music: {music_duration:.1f}s → trimmed to {effective_duration:.1f}s to match video")
             
             # Determine fade duration based on available time
-            fade_duration = min(5.0, effective_duration * 0.3)  # Max 30% of duration
+            fade_duration = min(FADE_DURATION_DEFAULT_MAX_S, effective_duration * FADE_DURATION_DEFAULT_RATIO)
             fade_start = max(0, effective_duration - fade_duration)  # Ensure non-negative
             
             # Apply fade-out and trim music to video duration
@@ -332,20 +380,20 @@ class FFmpegMCP:
         
         # Default volumes
         volumes = {
-            'video': 0.3,      # Original video audio (usually low for background)
-            'music': 0.4,      # Background music (increased from 0.2 to be more audible)
-            'voiceover': 1.0   # Voiceover (usually prominent)
+            'video': DEFAULT_VOLUME_VIDEO,      # Original video audio (usually low for background)
+            'music': DEFAULT_VOLUME_MUSIC,      # Background music (more audible)
+            'voiceover': DEFAULT_VOLUME_VOICE   # Voiceover (usually prominent)
         }
         
         # Parse music volume
         if 'loud music' in prompt_lower or 'high music' in prompt_lower:
-            volumes['music'] = 0.6
+            volumes['music'] = LOUD_MUSIC_VOLUME
         elif 'quiet music' in prompt_lower or 'soft music' in prompt_lower or 'low music' in prompt_lower:
-            volumes['music'] = 0.2  # Increased from 0.1 to be more audible
+            volumes['music'] = SOFT_MUSIC_VOLUME
         elif 'medium music' in prompt_lower or 'moderate music' in prompt_lower:
-            volumes['music'] = 0.4
+            volumes['music'] = MEDIUM_MUSIC_VOLUME
         elif 'no music' in prompt_lower or 'mute music' in prompt_lower:
-            volumes['music'] = 0.0
+            volumes['music'] = NO_MUSIC_VOLUME
         
         # Note: Fade out is automatically applied to background music
         if 'fade out' in prompt_lower or 'fade music' in prompt_lower:
@@ -354,21 +402,21 @@ class FFmpegMCP:
         
         # Parse voiceover volume
         if 'loud voice' in prompt_lower or 'clear voice' in prompt_lower or 'prominent voice' in prompt_lower:
-            volumes['voiceover'] = 1.2
+            volumes['voiceover'] = LOUD_VOICE_VOLUME
         elif 'quiet voice' in prompt_lower or 'soft voice' in prompt_lower or 'low voice' in prompt_lower:
-            volumes['voiceover'] = 0.7
+            volumes['voiceover'] = SOFT_VOICE_VOLUME
         elif 'medium voice' in prompt_lower or 'moderate voice' in prompt_lower:
-            volumes['voiceover'] = 1.0
+            volumes['voiceover'] = MEDIUM_VOICE_VOLUME
         elif 'no voice' in prompt_lower or 'mute voice' in prompt_lower:
-            volumes['voiceover'] = 0.0
+            volumes['voiceover'] = NO_VOICE_VOLUME
         
         # Parse video audio volume
         if 'loud video' in prompt_lower or 'keep video audio' in prompt_lower:
-            volumes['video'] = 0.8
+            volumes['video'] = LOUD_VIDEO_VOLUME
         elif 'quiet video' in prompt_lower or 'mute video' in prompt_lower or 'no video audio' in prompt_lower:
-            volumes['video'] = 0.0
+            volumes['video'] = MUTED_VIDEO_VOLUME
         elif 'medium video' in prompt_lower:
-            volumes['video'] = 0.5
+            volumes['video'] = MEDIUM_VIDEO_VOLUME
         
         # Parse specific numeric values (e.g., "music at 20%", "voice at 0.8")
         music_match = re.search(r'music.*?(\d+)%', prompt_lower)
