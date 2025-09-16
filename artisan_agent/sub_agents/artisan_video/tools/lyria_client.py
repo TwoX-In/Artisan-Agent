@@ -37,7 +37,7 @@ class LyriaClient:
         scopes = ['https://www.googleapis.com/auth/cloud-platform']
 
         if not self._credentials:
-            service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_KEY')
+            service_account_json = os.getenv('GCP_SA_KEY')
             if service_account_json:
                 import json
                 try:
