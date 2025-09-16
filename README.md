@@ -103,6 +103,15 @@ The Artisan Agent follows a **coordinator-worker pattern** with a main orchestra
 - Handles GCS image input and output storage
 - Includes timeout protection and progress monitoring
 
+#### FFmpeg MCP and Audio Orchestration
+- The Video Agent connects to a dedicated FFmpeg MCP (`artisan_agent/sub_agents/artisan_video/tools/ffmpeg_mcp.py`) to:
+  - Concatenate clips with transitions (xfade/acrossfade)
+  - Mix video audio + background music + voiceover with proper levels
+  - Auto-trim and fade-out background music to match final video duration
+- Audio generation/integration:
+  - Invokes the Lyria client (`artisan_agent/sub_agents/artisan_video/tools/lyria_client.py`) to generate audio (e.g., background/voice) when requested
+  - Supports volume prompts (e.g., "clear voice, soft music") parsed into deterministic mix levels
+
 **Technical Specs**:
 - **Duration**: 8-10 seconds (Veo model limit)
 - **Aspect Ratio**: 16:9 (landscape)
