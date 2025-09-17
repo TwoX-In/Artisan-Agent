@@ -147,7 +147,7 @@ async def health_check():
     required_vars = {
         "GOOGLE_CLOUD_PROJECT": bool(os.getenv("GOOGLE_CLOUD_PROJECT")),
         "GOOGLE_CLOUD_LOCATION": bool(os.getenv("GOOGLE_CLOUD_LOCATION")),
-        "GOOGLE_APPLICATION_CREDENTIALS": bool(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) or bool(os.getenv("GOOGLE_CLOUD_CREDENTIALS"))
+        "GCP_SA_KEY": bool(os.getenv("GCP_SA_KEY")) or bool(os.getenv("GCP_SA_KEY"))
     }
     
     health_status = "healthy" if app_wrapper else "unhealthy"

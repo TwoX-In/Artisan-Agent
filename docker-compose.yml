@@ -16,7 +16,7 @@ services:
       - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
       - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-us-central1}
       - GOOGLE_CLOUD_STORAGE_BUCKET=${GOOGLE_CLOUD_STORAGE_BUCKET}
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
+      - GCP_SA_KEY=/app/service-account-key.json
       
       # Logging Configuration  
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
