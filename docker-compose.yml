@@ -9,7 +9,7 @@ services:
     container_name: artisan-agent-api
     restart: unless-stopped
     ports:
-      - "8000:8080"  # Map localhost:8000 to container:8080
+      - "8080:8080"  # Map localhost:8080 to container:8080
     environment:
       # Google Cloud Configuration
       - GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI:-True}
