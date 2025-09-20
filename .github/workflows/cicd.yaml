@@ -51,5 +51,4 @@ jobs:
             --memory 2Gi \
             --cpu 2 \
             --timeout 900 \
-            --set-secrets "GCP_SA_KEY=GCP_SA_KEY:latest" \
             --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=${{ secrets.GOOGLE_GENAI_USE_VERTEXAI }},GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},GOOGLE_CLOUD_LOCATION=${{ secrets.GOOGLE_CLOUD_LOCATION }},GOOGLE_CLOUD_LOCATION_LYRIA=${{ secrets.GOOGLE_CLOUD_LOCATION_LYRIA }},GOOGLE_CLOUD_STORAGE_BUCKET=${{ secrets.GOOGLE_CLOUD_STORAGE_BUCKET }}"
