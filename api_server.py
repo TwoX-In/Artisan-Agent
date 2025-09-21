@@ -305,7 +305,7 @@ if __name__ == "__main__":
     import uvicorn 
     import os
 
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8080))
 
     print(" Starting Artisan Agent API server...")
     print(f"API documentation: http://localhost:{port}/docs")
