@@ -144,6 +144,11 @@ class FFmpegMCP:
             logger.info("FFmpeg command completed successfully")
             if result.stderr:
                 logger.debug(f"FFmpeg stderr: {result.stderr.decode(errors='ignore')}")
+            
+            # Ensure file is fully written to disk
+            import time
+            time.sleep(0.5)  # Small delay to ensure file is fully written
+            
         except subprocess.CalledProcessError as e:
             error_detail = e.stderr.decode(errors='ignore') if e.stderr else str(e)
             logger.error(f"{error_msg}: {error_detail}")

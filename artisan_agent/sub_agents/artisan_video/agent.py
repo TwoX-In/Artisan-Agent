@@ -61,11 +61,33 @@ def upload_to_gcs(local_path: str, gcs_uri: str, content_type: str = "applicatio
     if not bucket_name or not blob_name:
         raise ValueError("GCS URI must be of the form gs://bucket/object")
     
+    # Verify local file exists and get size
+    if not os.path.exists(local_path):
+        raise FileNotFoundError(f"Local file not found: {local_path}")
+    
+    file_size = os.path.getsize(local_path)
+    logger.info(f"Uploading {local_path} ({file_size} bytes) to {gcs_uri}")
+    
     # Upload file
     client = storage.Client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
-    blob.upload_from_filename(local_path, content_type=content_type)
+    
+    try:
+        blob.upload_from_filename(local_path, content_type=content_type)
+        logger.info(f"Successfully uploaded to GCS: {gcs_uri}")
+        
+        # Verify upload by checking blob size
+        blob.reload()
+        uploaded_size = blob.size
+        if uploaded_size != file_size:
+            logger.warning(f"Size mismatch: local={file_size}, uploaded={uploaded_size}")
+        else:
+            logger.info(f"Upload verification successful: {uploaded_size} bytes")
+            
+    except Exception as e:
+        logger.error(f"Failed to upload {local_path} to {gcs_uri}: {e}")
+        raise
     
     return gcs_uri
 
@@ -374,6 +396,20 @@ def process_videos_with_ffmpeg_mcp(video_uris: list,
         base_name = f"processed_video_{len(video_uris)}_clips"
         unique_name = f"{base_name}_{uuid.uuid4().hex}.mp4"
         output_gcs_uri = f"gs://{os.getenv('GOOGLE_CLOUD_STORAGE_BUCKET')}/artisan_videos/{unique_name}"
+        
+        # Verify file exists and has content before uploading
+        if not os.path.exists(final_video_path):
+            raise FileNotFoundError(f"Final video file not found: {final_video_path}")
+        
+        # Ensure file is fully written to disk
+        import time
+        time.sleep(1)  # Small delay to ensure file is fully written
+        
+        file_size = os.path.getsize(final_video_path)
+        if file_size == 0:
+            raise ValueError(f"Final video file is empty: {final_video_path}")
+        
+        logger.info(f"Final video file verified: {final_video_path} ({file_size} bytes)")
         
         final_gcs_uri = upload_to_gcs(final_video_path, output_gcs_uri, "video/mp4")
         logger.info(f"Final video uploaded to GCS: {final_gcs_uri}")
